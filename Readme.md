@@ -1,5 +1,7 @@
 # Learning Object Oriented Python3
 
+![Python3 Object Oriented Programming](python3_oop.png)
+
 ## Overview
 
 I've hit a wall with what I can achieve using standard python procedural
@@ -238,7 +240,7 @@ object into a dictionary for easier viewing of the whole thing.
 
 Here we can see our `discount` class level attribute when printing the Classes dict:
 
-```
+```python3
 >>> print(Item.__dict__)
 {'__module__': '__main__', 'discount': 0.2, '__init__': <function Item.__init__ at 0x7f3f2ea3eb00>, 'calculate_total_price': <function Item.calculate_total_price at 0x7f3f2ea3ee60>, '__dict__': <attribute '__dict_
 _' of 'Item' objects>, '__weakref__': <attribute '__weakref__' of 'Item' objects>, '__doc__': None}
@@ -246,7 +248,7 @@ _' of 'Item' objects>, '__weakref__': <attribute '__weakref__' of 'Item' objects
 
 And then here we can see the instance specific vars when printing our `iphone_order` object's dict.
 
-```
+```python3
 >>> print(iphone_order.__dict__)
 {'name': 'iPhone', 'price': 100, 'quantity': 4}
 ```
@@ -349,6 +351,11 @@ go to print things out.
 [Item('Phone', '100', '1'), Item('Laptop', '1000', '3'), Item('Cable', '10', '5'), Item('Mouse', '50', '5'), Item('Keyboard', '75', '5')]
 ```
 
+## Intermediate OOP Topics
+
+These next sections we start to get into some more intermediate such as Class
+vs Static vs Instance methods and Inheritance.
+
 ### Class Methods
 
 Moving forward we're going to store our data in a csv file for ease of use.
@@ -430,16 +437,15 @@ When we call the class method we can see it prints all our items as
 dictionaries. We then stuff all those item dictionaries into and instantiate
 them as Item objects.
 
-From bpython shell:
+Returns:
 
-```
+```python3
 {'name': 'Phone', 'price': '100', 'quantity': '1'}
 {'name': 'Laptop', 'price': '1000', 'quantity': '3'}
 {'name': 'Cable', 'price': '10', 'quantity': '5'}
 {'name': 'Mouse', 'price': '50', 'quantity': '5'}
 {'name': 'Keyboard', 'price': '75', 'quantity': '5'}
 [Item('Phone', '100.0', '1.0'), Item('Laptop', '1000.0', '3.0'), Item('Cable', '10.0', '5.0'), Item('Mouse', '50.0', '5.0'), Item('Keyboard', '75.0', '5.0')]
-
 ```
 
 ### Static Methods
@@ -619,7 +625,396 @@ print(Item.all)
 print(Phone.all)
 ```
 
+Returns:
+
+```
+2000.0
+[Item('Laptop', '1000', '2'), Phone('iPhone10', '500', '5'), Phone('iPhone13', '700', '5')]
+[Phone('iPhone10', '500', '5'), Phone('iPhone13', '700', '5')]
+```
+
+### Proper Structuring
+
+Okay so far we've just been messing around all in the same file. But in the
+real world a good rule of thumb is one class per file and the code that
+instantiates the objects and works with them should not be in the same file as
+the class.
+
+So let's break up our code a bit into an `item.py` file for our Item class, a
+`phone.py` file for our class, and finally a `main.py` file to wrap it all up.
+
+```
+app/
+├── item.py
+├── main.py
+└── phone.py
+```
+
+When doing this we do have to be careful to only include our classes in our
+newly created phone.py and main.py files.
+
+* `phone.py`
+```python3
+from item import Item
+
+class Phone(Item):
+    ...
+```
+
+* `main.py`
+```python3
+from item import Item
+from phone import Phone
+
+def main():
+    ...
+```
+
+### Encapsulation and Private Variables
+
+An important principal in object oriented programming is _"Encapsulation"_.
+
+When we write complicated programs we want to bundle up data into objects. As
+we've seen so far, we are able to change or mutate an objects data directly
+after creating our object. In other words we can create an object and
+instantiate it with one name and then on the next line change that name via
+`item.name = 'new name'`.
+
+So our objects are mutable from the outside. In this case our data is not
+encapsulated. Some code outside of our class file could change the value of
+some attribute, which can lead to confusion down the road and is less
+maintainable / testable.
+
+To better encapsulate our data, lets enforce some read only elements. We can
+use the `@property` decorator in python to make an attribute read only. But
+then we have a problem; how do we set our now read only property?
+
+Well in python we can use a single or double underscore before our variable
+name in conjunction with @property decorator to make variables private.
+
+The basic difference between one underscore `_var` and two underscores `__var`
+is that single underscore's are just protected (hidden) from being set. While
+double underscores, make the variable actually totally private to all but the
+class.
+
+```python
+class MyClass:
+    def __init__(self):
+        self._hidden = 10
+        self.__private = 10
+
+    @property
+    def hidden(self):
+        return self._hidden
+
+    @property
+    def private(self):
+        return self.__private
+
+obj = MyClass()
+
+# An automatic alias to "hidden" without the underscore
+print(obj.hidden)  # Output: 10
+
+#obj.hidden = 20  # This would raise AttributeError: can't set attribute 'value'
+
+# But can still set _hidden directly.
+obj._hidden = 20
+print(obj.hidden)  # Output: 20
+
+# Whereas we can't set a private var from outside at all
+print(obj.private)  # Output: 10
+obj.__private = 20  # Doesn't do anything
+print(obj.private)  # Output: 10
+```
+
+### Getters & Setters
+
+Now that we've learned about how to hide data away and make it private from the
+outside, let's talk about how to access that data and set it if we need to.
+
+We do this by creating a set of methods called `getters` and `setters` that are
+allowed to mutate the data within our object. Then, there's only one defined
+channel through which our object's data can be accessed or changed, making our
+code more modular and reliable.
+
+In python we use the `@<value>.setter` decorator to make a setter method. Let's
+look at an example with our Item class.
+
+* `item.py`:
+
+```python3
+class Item:
+
+    #...
+
+    def __init__(self, name: str, price: float, quantity=0):
+        # Validate args
+        assert price >= 0, f"Price {price} cannot be negative"
+        assert quantity >= 0, f"Quantity {quantity} cannot be negative"
+
+        # Assign args
+        self.__name = name
+        self.__price = price
+        self.__quantity = quantity
+
+        # Do needful...
+        Item.all.append(self)
+
+    @property
+    def name(self):
+        return self.__name 
+
+    @name.setter
+    def name(self, value):
+        self.__name = value
+```
+
+As you can see, we use `@name.setter` to create a special method that is
+allowed to update our private variable.
+
+Then when we go to run it, now once again we are able to set the value of name
+to something new via the new setter method.
+
+* `main.py`:
+
+```python3
+from item import Item
+from phone import Phone
+
+item = Item("myItem", 750)
+
+# Getter is automatically used to get name
+print(item.name)
+
+# Setter is automatically used to set new name
+item.name = "newItemName"
+
+print(item.name)
+```
+
+Prints:
+
+```
+newItemName
+```
+
+These getters and setters provide a great place to store some basic validation
+logic too to check people are setting the var to something the object expects.
+For example:
+
+```python3
+    @name.setter
+    def name(self, value):
+        if len(value) > 15:
+            raise Exception("Name too long!")
+
+        self.__name = value
+```
+
+## The Four Main Pillars of OOP
+
+We've already talked about a couple, but there are four main pillar or
+principals of writing well structured object oriented programs.
+
+These are:
+
+* **Encapsulation**: Bundling data (attributes) and the methods that operate on the data within a single unit called a class.
+* **Abstraction**: Hiding complex implementation details and showing only the essential features of an object.
+* **Inheritance**: A mechanism where a new class (subclass or child class) can inherit properties and behaviors from an existing class (superclass or parent class). 
+* **Polymorphism**: The ability for an object to take on many forms. It allows you to treat objects of different classes in a uniform way, often by using a single interface. This means you can call the same method on different objects, and each object will respond in its own way. 
+
+### Encapsulation (Again)
+
+We just talked about encapsulation. But yeah its all about making isolating the
+data for the object to within the object and only accessing or changing it via
+the getters/setters.
+
+### Abstraction
+
+Abstraction is all about bundling up and exposing only the necessary attributes
+and methods for interacting with your specific type of object.
+
+Often times this means not exposing methods that are not used externally. Say
+for example you have a complicated class that has to do many different things.
+
+In python, we can use double underscores again with methods this time to make
+them private.
+
+```python3
+class Email:
+
+    def __init__(self):
+        self.smtp_server = 'mail.example.com'
+        self.body
+        pass
+
+    def __repr__(self):
+        pass
+
+    def __connect(self, smtp_server):
+        """Make connection to smtp server"""
+        pass
+        
+    def __prepare_body(self, body):
+        """Prepare the email body"""
+        self.body = f"""
+        Hello,
+
+        {body}
+
+        Regards, Me
+        """
+
+    def __send(self):
+        """Sends the email"""
+        pass
+
+    def send_email(self, msg):
+        self.connect(self.smtp_server)
+        self.prepare_body(msg)
+        self.send_msg()
+
+```
+
+As you can see with the code above, we don't want to expose anything except for
+the `send_email()` method. Tucking in the coroners and hiding rough edges is an
+essential part of abstraction.
+
+#### Inheritance (Again)
+
+We talked about inheritance in detail in the section above. But lets take a
+step back and talk about why inheritance is useful.
+
+The main idea behind inheritance is move commonalities up the layers of
+abstraction. For example, in our fake store code from earlier, we wanted all
+items to have the same discount applied to them across the entire store. So we
+moved that method into the parent Item class allowing us to apply it globally
+from anything that inherits from the Item class.
+
+But abstraction and inheritance aren't limited to one parent and a few children
+only. You can have an infinite number of child classes that each inherit from a
+parent. You can have grand child and great grand child, and great-great grand
+child classes. The key here is that each parent class must be more general, and
+each child more specific.
+
+Say for example we want to make a new program to classify all the animals we've
+seen today. We could start out with the abstract base class of `Animal`
+
+```python3
+# Level 1: Base Parent Classes
+class Animal:
+    def __init__(self, name):
+        self.name = name
+
+    def speak(self):
+        print(f"{self.name} makes a sound.")
+```
+
+Then as we go through out our day we might see our friend Alice's dog Buddy.
+
+Not only is Buddy an Animal, but he's also a Pet so he has an owner and he's a
+Dog. So we can create two new classes to further model and categorize our
+animal sightings.
+
+```python3
+class Pet:
+    def __init__(self, owner):
+        self.owner = owner
+
+    def greet_owner(self):
+        print(f"{self.name} greets {self.owner}.")
+
+# Level 2: Intermediate Child Class (Multiple Inheritance)
+class Dog(Animal, Pet):  # Dog inherits from both Animal and Pet
+    def __init__(self, name, owner, breed):
+        Animal.__init__(self, name)  # Initialize Animal parent
+        Pet.__init__(self, owner)    # Initialize Pet parent
+        self.breed = breed
+
+    def speak(self):  # Overriding the speak method from Animal
+        print(f"{self.name} barks loudly!")
+
+    def fetch(self):
+        print(f"{self.name} is fetching the ball.")
 
 
+# Create instances and demonstrate inheritance
+print("--- Dog Instance ---")
+my_dog = Dog("Buddy", "Alice", "Labrador")
+my_dog.speak()
+my_dog.greet_owner()
+my_dog.fetch()
+print(f"My dog's name is {my_dog.name} and its owner is {my_dog.owner}.")
+```
+
+Then say we went through out the day and we saw a Blue jay out of the window.
+We could do the same for it, creating a new class WildAnimal that inherits from
+our base Animal class and a new kind of WildAnimal, Bird etc..
 
 
+### Polymorphism
+
+The last pillar of OOP is Polymorphism.
+
+When describing a function or class as polymorphic, all it means is that thing
+behave the same way no matter the underlying form of the thing its acting on.
+
+Let's look at a non-OOP example first from standard python. Specifically, the
+builtin `len()` function. Len behaves the same way regardless if its acting on
+string or a list or a dictionary, ect..
+
+```python3
+x = "Hello World!"
+print(len(x))  # Prints 12
+
+mytuple = ("apple", "banana", "cherry")
+print(len(mytuple))  # Prints 3
+
+thisdict =	{
+  "brand": "Ford",
+  "model": "Mustang",
+  "year": 1964
+}
+print(len(thisdict))  # Prints 3
+```
+
+In an object oriented context this means we should expect inherited objects to
+each have the methods of its parent. In the example below Boat, Car, and Plane
+all have a .move() method that can be used to make each do their own type of
+movement.
+
+```python3
+class Car:
+  def __init__(self, brand, model):
+    self.brand = brand
+    self.model = model
+
+  def move(self):
+    print("Drive!")
+
+class Boat:
+  def __init__(self, brand, model):
+    self.brand = brand
+    self.model = model
+
+  def move(self):
+    print("Sail!")
+
+class Plane:
+  def __init__(self, brand, model):
+    self.brand = brand
+    self.model = model
+
+  def move(self):
+    print("Fly!")
+
+car1 = Car("Ford", "Mustang")       #Create a Car object
+boat1 = Boat("Ibiza", "Touring 20") #Create a Boat object
+plane1 = Plane("Boeing", "747")     #Create a Plane object
+
+for x in (car1, boat1, plane1):
+  x.move()
+```
+
+[More info - w3schools.com Polymorphisms](https://www.w3schools.com/python/python_polymorphism.asp)
