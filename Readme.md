@@ -23,7 +23,7 @@
 - [The Four Main Pillars of OOP](#the-four-main-pillars-of-oop)
   * [Encapsulation (Again)](#encapsulation-again)
   * [Abstraction](#abstraction)
-    + [Inheritance (Again)](#inheritance-again)
+  * [Inheritance (Again)](#inheritance-again)
   * [Polymorphism](#polymorphism)
 
 <!-- tocstop -->
@@ -907,7 +907,7 @@ As you can see with the code above, we don't want to expose anything except for
 the `send_email()` method. Tucking in the coroners and hiding rough edges is an
 essential part of abstraction.
 
-#### Inheritance (Again)
+### Inheritance (Again)
 
 We talked about inheritance in detail in the section above. But lets take a
 step back and talk about why inheritance is useful.
