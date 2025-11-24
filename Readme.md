@@ -1981,8 +1981,12 @@ structure if they're going to grow taller.
 
 * [FreeCodeCamp YouTube - Object Oriented Programming with Python](https://www.youtube.com/watch?v=Ej_02ICOIgs)
 * [w3schools.com - Polymorphisms](https://www.w3schools.com/python/python_polymorphism.asp)
-* [![Fireship Youtube - Design Patterns](https://i.ytimg.com/vi/tv-_1er1mWI/maxresdefault.jpg)](https://www.youtube.com/watch?v=tv-_1er1mWI)
-* [![NeetCode Youtube - Design Patterns](https://i.ytimg.com/vi/tAuRQs_d9F8/maxresdefault.jpg)](https://www.youtube.com/watch?v=tAuRQs_d9F8)
+* [Fireship Youtube - Design Patterns](https://www.youtube.com/watch?v=tv-_1er1mWI)
+* [NeetCode Youtube - Design Patterns](https://www.youtube.com/watch?v=tAuRQs_d9F8)
 * [Refactoring Guru - Catalog of Design Patterns](https://refactoring.guru/design-patterns/catalog)
 * [Neetcode.io - Design Patterns Code](https://neetcode.io/courses/lessons/8-design-patterns)
 * [Real Python - Solid Principals](https://realpython.com/solid-principles-python/)
+
+
+<br><hr>
+[🔼 Back to top](#learning-object-oriented-python3)
