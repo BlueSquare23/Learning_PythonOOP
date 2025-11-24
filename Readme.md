@@ -2,6 +2,32 @@
 
 ![Python3 Object Oriented Programming](python3_oop.png)
 
+<!-- toc -->
+
+- [Overview](#overview)
+- [Getting Started with Classes](#getting-started-with-classes)
+  * [Constructor Method `__init__`](#constructor-method-__init__)
+  * [Typing](#typing)
+  * [Assert Validation](#assert-validation)
+  * [Class Attributes](#class-attributes)
+    + [Exploring Class Vs Instance Attributes Using `__dict__`](#exploring-class-vs-instance-attributes-using-__dict__)
+  * [Getting All Instances](#getting-all-instances)
+  * [Defining A `__repr__` Method](#defining-a-__repr__-method)
+- [Intermediate OOP Topics](#intermediate-oop-topics)
+  * [Class Methods](#class-methods)
+  * [Static Methods](#static-methods)
+  * [Inheritance](#inheritance)
+  * [Proper Structuring](#proper-structuring)
+  * [Encapsulation and Private Variables](#encapsulation-and-private-variables)
+  * [Getters & Setters](#getters--setters)
+- [The Four Main Pillars of OOP](#the-four-main-pillars-of-oop)
+  * [Encapsulation (Again)](#encapsulation-again)
+  * [Abstraction](#abstraction)
+    + [Inheritance (Again)](#inheritance-again)
+  * [Polymorphism](#polymorphism)
+
+<!-- tocstop -->
+
 ## Overview
 
 I've hit a wall with what I can achieve using standard python procedural
