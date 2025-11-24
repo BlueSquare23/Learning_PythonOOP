@@ -1044,3 +1044,645 @@ for x in (car1, boat1, plane1):
 ```
 
 [More info - w3schools.com Polymorphisms](https://www.w3schools.com/python/python_polymorphism.asp)
+
+## Advanced Python OOP Concepts
+
+Okay at this point we've learned a lot about the fundamentals of object
+oriented programming in python. We're now moving into some deeper waters that
+are much more concerned with high level Object Oriented Design (OOD).
+
+They're about how to build projects not with just one or two classes but with
+10-20-100 different classes, all inheriting and interacting with each other.
+
+When I was younger I used to think of these sorta things as optional
+"guidelines" to follow to help you not paint yourself into a corner. But as I
+get older I realize, these are more than just "best practices" to follow. 
+
+In reality, as a project grows in size and complexity, these standards become
+essential in preventing the house of cards from collapsing in on itself.
+Everyone has to be on the same page. These are the pages they're on.
+
+### Design Patterns
+
+There are more design patterns out there than we have time to cover today.
+
+However, basically there are three categories for Design Patterns:
+
+1. Creational Patterns: These patterns deal with object creation mechanisms,
+aiming to increase flexibility and reuse of existing code.
+  * Singleton Pattern: Ensures a class has only one instance and provides a global point of access to it.
+  * Factory Method Pattern: Defines an interface for creating an object, but lets subclasses decide which class to instantiate. 
+  * Abstract Factory: Provides an interface for creating families of related or dependent objects without specifying their concrete classes. 
+  * Builder Pattern: Separates the construction of a complex object from its representation, allowing the same construction process to create different representations.
+
+2. Structural Patterns: These patterns explain how to assemble objects and
+classes into larger structures while keeping these structures flexible and
+efficient. 
+  * Adapter: Allows incompatible interfaces to work together by creating a bridge between them.
+  * Bridge: Decouples an abstraction from its implementation so that the two can vary independently.
+  * Decorator: Attaches new behaviors or responsibilities to objects dynamically without altering their core structure.
+  * Facade: Provides a simplified, higher-level interface to a complex subsystem, making it easier to use.
+  * Proxy: Provides a surrogate or placeholder for another object to control access to it.
+
+3. Behavioral Patterns: These patterns are concerned with algorithms and the
+assignment of responsibilities between objects, defining how objects interact
+and communicate.
+  * Chain of Responsibility: Passes requests along a chain of handlers, allowing multiple objects to handle a request without explicitly specifying the receiver.
+  * Iterator: Provides a way to access the elements of an aggregate object sequentially without exposing its underlying representation.
+  * Mediator: Defines an object that encapsulates how a set of objects interact, promoting loose coupling by keeping objects from referring to each other explicitly.
+
+So there's patterns related to how we create object, patterns related to how we
+structure classes and object into larger machines, and patterns related to how
+objects behave and interact with each other.
+
+We're not going to cover all of those. But here's a youtube video that lays it
+all out pretty nicely.
+
+[![Fireship Design Patterns](https://i.ytimg.com/vi/tv-_1er1mWI/maxresdefault.jpg)](https://www.youtube.com/watch?v=tv-_1er1mWI)
+
+[![NeetCode Design Patterns](https://i.ytimg.com/vi/tAuRQs_d9F8/maxresdefault.jpg)](https://www.youtube.com/watch?v=tAuRQs_d9F8)
+
+[Catalog of Design Patterns](https://refactoring.guru/design-patterns/catalog)
+
+We'll start off by looking at some creational patterns, then hop into a couple
+of structural patterns and finish off by going over one or two behavioral
+patterns.
+
+#### Creational Patterns
+
+##### Singleton Pattern
+
+The singleton is the highlander pattern "There can only be one!" Its a class
+that can only ever have one instance.
+
+```python3
+class ApplicationState:
+    instance = None
+
+    def __init__(self):
+        self.isLoggedIn = False
+
+    @staticmethod
+    def getAppState():
+        if not ApplicationState.instance:  
+            ApplicationState.instance = ApplicationState()
+        return ApplicationState.instance
+
+appState1 = ApplicationState.getAppState()
+print(appState1.isLoggedIn)
+
+appState2 = ApplicationState.getAppState()
+appState1.isLoggedIn = True
+
+print(appState1.isLoggedIn)
+print(appState2.isLoggedIn)
+```
+
+Output:
+
+```
+False
+True
+True 
+```
+
+We can see we have a class level var for instance that'll hold our state
+(logged in or not). When we get a second instance, we can see they have the
+same state .
+
+##### Factory Pattern
+
+Say we have some code that needs to make burgers. We could make a really
+bloated set of classes that inherit from a parent Burger class and instantiate
+each separately. But that can become complicated and messy. 
+
+So instead we choose to make a Factory. The factory's whole job is to turn out
+different kinds of burger objects.
+
+```python3
+class Burger:
+    def __init__(self, ingredients):
+        self.ingredients = ingredients
+
+    def print(self):
+        print(self.ingredients)
+
+class BurgerFactory:
+    
+    def createCheeseBurger(self):
+        ingredients = ["bun", "cheese", "beef-patty"]
+        return Burger(ingredients)
+    
+    def createDeluxeCheeseBurger(self):
+        ingredients = ["bun", "tomatoe", "lettuce", "cheese", "beef-patty"]
+        return Burger(ingredients)
+
+    def createVeganBurger(self):
+        ingredients = ["bun", "special-sauce", "veggie-patty"]
+        return Burger(ingredients)
+
+burgerFactory = BurgerFactory()
+burgerFactory.createCheeseBurger().print()
+burgerFactory.createDeluxeCheeseBurger().print()
+burgerFactory.createVeganBurger().print()
+```
+
+Output:
+
+```python3
+['bun', 'cheese', 'beef-patty']
+['bun', 'tomatoe', 'lettuce', 'cheese', 'beef-patty']
+['bun', 'special-sauce', 'veggie-patty'] 
+```
+
+This way we can decouple the thing that's expecting a burger from the details
+about how to make that burger and just give it a standard polymorphic burger
+that each implement the bite method.
+
+##### Builder Pattern
+
+A factory is good when you want to build an object all at once, with one call.
+However, if you need to build something up layer by layer piecemeal, you'll
+want to use a Builder pattern instead.
+
+With a Builder, each method just returns a reference to itself. This allows the
+BurgerBuilder caller to construct their burger step by step and chain all the
+calls together, because each just returns a ref to self (aka BurgerBuilder
+object). Then finally we "build" our object to return the ref to the burger
+object we want.
+
+```python3
+class Burger:
+    def __init__(self):
+        self.buns = None
+        self.patty = None
+        self.cheese = None
+
+    def setBuns(self, bunStyle):
+        self.buns = bunStyle
+    
+    def setPatty(self, pattyStyle):
+        self.patty = pattyStyle
+    
+    def setCheese(self, cheeseStyle):
+        self.cheese = cheeseStyle
+
+class BurgerBuilder:
+    def __init__(self):
+        self.burger = Burger()
+
+    def addBuns(self, bunStyle):
+        self.burger.setBuns(bunStyle)
+        return self
+    
+    def addPatty(self, pattyStyle):
+        self.burger.setPatty(pattyStyle)
+        return self
+    
+    def addCheese(self, cheeseStyle):
+        self.burger.setCheese(cheeseStyle)
+        return self  
+
+    def build(self):
+        return self.burger
+
+burger = BurgerBuilder() \
+            .addBuns("sesame") \
+            .addPatty("fish-patty") \
+            .addCheese("swiss cheese") \
+            .build()
+```
+
+[Neetcode Design Patterns Code](https://neetcode.io/courses/lessons/8-design-patterns)
+
+### Solid Principals
+
+We talked about the four pillars earlier (Encapsulation, Abstraction,
+Inheritance, Polymorphism). I like to think of solid principals as like an
+add-on to the four main pillars. Like as if someone said "yeah the four pillars
+are the essence of OOP, but here's five more rules to help re-enforce things a
+bit." And you'll see echos of the four pillars in the Solid principals.
+
+Solid is an acronym and it stands for:
+
+* Single-responsibility principle (SRP)
+* Open–closed principle (OCP)
+* Liskov substitution principle (LSP)
+* Interface segregation principle (ISP)
+* Dependency inversion principle (DIP)
+
+A lot of the below is blatantly ripped from here:
+
+[Real Python - Solid Principals](https://realpython.com/solid-principles-python/)
+
+I'm just compiling it all here in this one doc for my notes.
+
+#### Single-responsibility
+
+The single-responsibility principle (SRP) comes from Robert C. Martin, more
+commonly known by his nickname Uncle Bob, who’s a well-respected figure in
+the software engineering world and one of the original signatories of the
+Agile Manifesto. In fact, he coined the term SOLID.
+
+The single-responsibility principle states that:
+
+>    A class should have only one reason to change.
+
+So if we have a class that is being utilized for two different things, break it
+up into multiple classes.
+
+```python3
+from pathlib import Path
+from zipfile import ZipFile
+
+class FileManager:
+    def __init__(self, filename):
+        self.path = Path(filename)
+
+    def read(self, encoding="utf-8"):
+        return self.path.read_text(encoding)
+
+    def write(self, data, encoding="utf-8"):
+        self.path.write_text(data, encoding)
+
+    def compress(self):
+        with ZipFile(self.path.with_suffix(".zip"), mode="w") as archive:
+            archive.write(self.path)
+
+    def decompress(self):
+        with ZipFile(self.path.with_suffix(".zip"), mode="r") as archive:
+            archive.extractall()
+```
+
+Compression and decompressions are unrelated to the normal read and write
+operations of our `FileManager`. So Single-Responsibility Principle (SRP) says
+we should break this up into two different classes that each do their own
+thing.
+
+```python3
+from pathlib import Path
+from zipfile import ZipFile
+
+class FileManager:
+    def __init__(self, filename):
+        self.path = Path(filename)
+
+    def read(self, encoding="utf-8"):
+        return self.path.read_text(encoding)
+
+    def write(self, data, encoding="utf-8"):
+        self.path.write_text(data, encoding)
+
+class ZipFileManager:
+    def __init__(self, filename):
+        self.path = Path(filename)
+
+    def compress(self):
+        with ZipFile(self.path.with_suffix(".zip"), mode="w") as archive:
+            archive.write(self.path)
+
+    def decompress(self):
+        with ZipFile(self.path.with_suffix(".zip"), mode="r") as archive:
+            archive.extractall()
+
+```
+
+#### Open-Closed Principle (OCP)
+
+The open-closed principle (OCP) for object-oriented design was originally
+introduced by Bertrand Meyer in 1988 and means that:
+
+> Software entities (classes, modules, functions, etc.) should be open for
+> extension, but closed for modification.
+
+So basically its a principal saying our classes should go from generic base
+class to more specific and be extensible, but not mutable. We should be able to
+build off of them, without having to modify the base class.
+
+For example, Say we have this shape class:
+
+```python3
+from math import pi
+
+class Shape:
+    def __init__(self, shape_type, **kwargs):
+        self.shape_type = shape_type
+        if self.shape_type == "rectangle":
+            self.width = kwargs["width"]
+            self.height = kwargs["height"]
+        elif self.shape_type == "circle":
+            self.radius = kwargs["radius"]
+
+    def calculate_area(self):
+        if self.shape_type == "rectangle":
+            return self.width * self.height
+        elif self.shape_type == "circle":
+            return pi * self.radius**2
+```
+
+You can see we're using it to get the area for either a rectangle or a circle.
+
+But what if we wanted to add to this? Its not very clean and extensible.
+
+So instead what we can do to refactor this is use an _Abstract Base Class
+(ABC)_ to create a generic Shape class. This base class defines an "interface"
+via `.calculate_area()` that our specific Square, Rectangle, Circle classes can
+all overwrite and implement.
+
+```python3
+from abc import ABC, abstractmethod
+from math import pi
+
+class Shape(ABC):
+    def __init__(self, shape_type):
+        self.shape_type = shape_type
+
+    @abstractmethod
+    def calculate_area(self):
+        pass
+
+class Circle(Shape):
+    def __init__(self, radius):
+        super().__init__("circle")
+        self.radius = radius
+
+    def calculate_area(self):
+        return pi * self.radius**2
+
+class Rectangle(Shape):
+    def __init__(self, width, height):
+        super().__init__("rectangle")
+        self.width = width
+        self.height = height
+
+    def calculate_area(self):
+        return self.width * self.height
+
+class Square(Shape):
+    def __init__(self, side):
+        super().__init__("square")
+        self.side = side
+
+    def calculate_area(self):
+        return self.side**2
+```
+
+So now without having to modify our Shape class we can extend it with even more
+shapes without polluting one class with lots of if statements.
+
+#### Liskov Substitution Principle (LSP)
+
+The Liskov substitution principle (LSP) was introduced by Barbara Liskov at an
+OOPSLA conference in 1987. Since then, this principle has been a fundamental
+part of object-oriented programming. The principle states that:
+
+> Subtypes must be substitutable for their base types.
+
+In practice, this principle is about making your subclasses behave like their
+base classes without breaking anyone's expectations when they call the same
+methods. To continue with shape-related examples, say you have a Rectangle
+class like the following:
+
+```python3
+class Rectangle:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+    def calculate_area(self):
+        return self.width * self.height
+```
+
+You might be tempted to build your Square class off of the Rectangle class
+making sure to tweak the setter so that with or height will work to set the
+sides length for your square.
+
+```python3
+class Square(Rectangle):
+    def __init__(self, side):
+        super().__init__(side, side)
+
+    def __setattr__(self, key, value):
+        super().__setattr__(key, value)
+        if key in ("width", "height"):
+            self.__dict__["width"] = value
+            self.__dict__["height"] = value
+```
+
+But by doing so you've broken Polymorphism and violated the Liskov Substitution
+Principle.
+
+```python3
+>>> from shapes_lsp import Square
+
+>>> square = Square(5)
+>>> vars(square)
+{'width': 5, 'height': 5}
+
+>>> square.width = 7
+>>> vars(square)
+{'width': 7, 'height': 7}
+
+>>> square.height = 9
+>>> vars(square)
+{'width': 9, 'height': 9}
+```
+
+Somebody working with our module might think that square behaves the same as
+rectangle or circle or anything that inherits from the base Shape class, but
+now it doesn't and that breaking of assumptions is the violation of the Liskov
+Substitution Principle.
+
+#### Interface Segregation Principle (ISP)
+
+The interface segregation principle (ISP) comes from the same mind as the
+single-responsibility principle. Yes, it's another feather in Uncle Bob's cap.
+The principle's main idea is that:
+
+> Clients should not be forced to depend upon methods that they do not use.
+> Interfaces belong to clients, not to hierarchies.
+
+This is that same as what we talked about with abstraction generally, hiding
+things away and breaking things out into separate pieces.
+
+Consider the following example of class hierarchy to model printing machines:
+
+```python3
+from abc import ABC, abstractmethod
+
+class Printer(ABC):
+    @abstractmethod
+    def print(self, document):
+        pass
+
+    @abstractmethod
+    def fax(self, document):
+        pass
+
+    @abstractmethod
+    def scan(self, document):
+        pass
+
+class OldPrinter(Printer):
+    def print(self, document):
+        print(f"Printing {document} in black and white...")
+
+    def fax(self, document):
+        raise NotImplementedError("Fax functionality not supported")
+
+    def scan(self, document):
+        raise NotImplementedError("Scan functionality not supported")
+
+class ModernPrinter(Printer):
+    def print(self, document):
+        print(f"Printing {document} in color...")
+
+    def fax(self, document):
+        print(f"Faxing {document}...")
+
+    def scan(self, document):
+        print(f"Scanning {document}...")
+```
+
+We can see our OldPrinter class has some methods that are not implemented
+because the old printer doesn't support that functionality.
+
+This implementation violates the ISP because it forces OldPrinter to expose an
+interface that the class doesn't implement or need. To fix this issue, you
+should separate the interfaces into smaller and more specific classes. 
+
+```python3
+from abc import ABC, abstractmethod
+
+class Printer(ABC):
+    @abstractmethod
+    def print(self, document):
+        pass
+
+class Fax(ABC):
+    @abstractmethod
+    def fax(self, document):
+        pass
+
+class Scanner(ABC):
+    @abstractmethod
+    def scan(self, document):
+        pass
+
+class OldPrinter(Printer):
+    def print(self, document):
+        print(f"Printing {document} in black and white...")
+
+class NewPrinter(Printer, Fax, Scanner):
+    def print(self, document):
+        print(f"Printing {document} in color...")
+
+    def fax(self, document):
+        print(f"Faxing {document}...")
+
+    def scan(self, document):
+        print(f"Scanning {document}...")
+```
+
+Now Printer, Fax, and Scanner are base classes that provide specific interfaces
+with a single responsibility each. To create OldPrinter, you only inherit the
+Printer interface. This way, the class won’t have unused methods. To create the
+ModernPrinter class, you need to inherit from all the interfaces. In short,
+we've segregated the Printer interface.
+
+#### Dependency Inversion Principle (DIP)
+
+The dependency inversion principle (DIP) is the last principle in the SOLID
+set. This principle states that:
+
+> Abstractions should not depend upon details. Details should depend upon
+> abstractions.
+
+That sounds pretty complex. Here's an example that will help to clarify it. Say
+you're building an application and have a FrontEnd class to display data to the
+users in a friendly way. The app currently gets its data from a database, so
+you end up with the following code:
+
+```python3
+class FrontEnd:
+    def __init__(self, back_end):
+        self.back_end = back_end
+
+    def display_data(self):
+        data = self.back_end.get_data_from_database()
+        print("Display data:", data)
+
+class BackEnd:
+    def get_data_from_database(self):
+        return "Data from the database"
+```
+
+In this example, the FrontEnd class depends on the BackEnd class and its
+concrete implementation. You can say that both classes are tightly coupled. 
+
+You may think of adding a new method to BackEnd to retrieve the data from the
+REST API. However, that will also require you to modify FrontEnd, which should
+be closed to modification, according to the open-closed principle.
+
+To fix the issue, you can apply the dependency inversion principle and make
+your classes depend on abstractions rather than on concrete implementations
+like BackEnd. In this specific example, you can introduce a DataSource class
+that provides the interface to use in your concrete classes:
+
+```python3
+from abc import ABC, abstractmethod
+
+class FrontEnd:
+    def __init__(self, data_source):
+        self.data_source = data_source
+
+    def display_data(self):
+        data = self.data_source.get_data()
+        print("Display data:", data)
+
+class DataSource(ABC):
+    @abstractmethod
+    def get_data(self):
+        pass
+
+class Database(DataSource):
+    def get_data(self):
+        return "Data from the database"
+
+class API(DataSource):
+    def get_data(self):
+        return "Data from the API"
+```
+
+In this redesign of your classes, you've added a DataSource class as an
+abstraction that provides the required interface, or the `.get_data()` method.
+Note how FrontEnd now depends on the interface provided by DataSource, which is
+an abstraction.
+
+Basically, rather than casing on type of data source then fetching from the one
+specified, dependency inversion lets us pass an abstract interface to the data
+source (whatever it might be). Then our method for displaying the data doesn't
+need to care what data source we're working with, because they all implement the
+`.get_data()` method, so it can work with any of them.
+
+## Conclusion
+
+These are John's notes on object oriented programming in python3.
+
+I'm excited to get into this stuff more and write more oop code do more ood.
+However, I'm also aware that OOP is A) time consuming to write and B) overkill
+in certain situations. 
+
+However, at this point I do believe its unfortunately somewhat necessary to
+dive into to allow my projects to scale. The mountains of spaghetti code need
+structure if they're going to grow taller. 
+
+## Sources
+
+* [FreeCodeCamp YouTube - Object Oriented Programming with Python](https://www.youtube.com/watch?v=Ej_02ICOIgs)
+* [w3schools.com - Polymorphisms](https://www.w3schools.com/python/python_polymorphism.asp)
+* [![Fireship Youtube - Design Patterns](https://i.ytimg.com/vi/tv-_1er1mWI/maxresdefault.jpg)](https://www.youtube.com/watch?v=tv-_1er1mWI)
+* [![NeetCode Youtube - Design Patterns](https://i.ytimg.com/vi/tAuRQs_d9F8/maxresdefault.jpg)](https://www.youtube.com/watch?v=tAuRQs_d9F8)
+* [Refactoring Guru - Catalog of Design Patterns](https://refactoring.guru/design-patterns/catalog)
+* [Neetcode.io - Design Patterns Code](https://neetcode.io/courses/lessons/8-design-patterns)
+* [Real Python - Solid Principals](https://realpython.com/solid-principles-python/)
