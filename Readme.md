@@ -25,6 +25,27 @@
   * [Abstraction](#abstraction)
   * [Inheritance (Again)](#inheritance-again)
   * [Polymorphism](#polymorphism)
+- [Advanced Python OOP Concepts](#advanced-python-oop-concepts)
+  * [Design Patterns](#design-patterns)
+    + [Creational Patterns](#creational-patterns)
+      - [Singleton Pattern](#singleton-pattern)
+      - [Factory Pattern](#factory-pattern)
+      - [Builder Pattern](#builder-pattern)
+    + [Structural Patterns](#structural-patterns)
+      - [Adapter Pattern](#adapter-pattern)
+      - [Facade Pattern](#facade-pattern)
+    + [Behavioral Patterns](#behavioral-patterns)
+      - [Observer Pattern (Aka PubSub)](#observer-pattern-aka-pubsub)
+      - [Iterator Pattern](#iterator-pattern)
+      - [Strategy Pattern](#strategy-pattern)
+  * [Solid Principals](#solid-principals)
+    + [Single-responsibility](#single-responsibility)
+    + [Open-Closed Principle (OCP)](#open-closed-principle-ocp)
+    + [Liskov Substitution Principle (LSP)](#liskov-substitution-principle-lsp)
+    + [Interface Segregation Principle (ISP)](#interface-segregation-principle-isp)
+    + [Dependency Inversion Principle (DIP)](#dependency-inversion-principle-dip)
+- [Conclusion](#conclusion)
+- [Sources](#sources)
 
 <!-- tocstop -->
 
@@ -1095,8 +1116,8 @@ So there's patterns related to how we create object, patterns related to how we
 structure classes and object into larger machines, and patterns related to how
 objects behave and interact with each other.
 
-We're not going to cover all of those. But here's a youtube video that lays it
-all out pretty nicely.
+We're not going to cover all of those. But here's a few youtube videos that
+lays it all out pretty nicely.
 
 [![Fireship Design Patterns](https://i.ytimg.com/vi/tv-_1er1mWI/maxresdefault.jpg)](https://www.youtube.com/watch?v=tv-_1er1mWI)
 
@@ -1252,6 +1273,285 @@ burger = BurgerBuilder() \
             .addCheese("swiss cheese") \
             .build()
 ```
+
+#### Structural Patterns
+
+##### Adapter Pattern
+
+An adapter is exactly what it sounds like. We have one object that presents one
+type of interface and some code that is expecting a different interface. So we
+make a new class that plugs our existing objects interface into a different
+type of "socket" (aka downstream code that is expecting object to behave in
+standard polymorphic way).
+
+```python3
+class UsbCable:
+    def __init__(self):
+        self.isPlugged = False
+    
+    def plugUsb(self):
+        self.isPlugged = True
+
+class UsbPort:
+    def __init__(self):
+        self.portAvailable = True
+    
+    def plug(self, usb):
+        if self.portAvailable:
+            usb.plugUsb()
+            self.portAvailable = False
+
+# UsbCables can plug directly into Usb ports
+usbCable = UsbCable()
+usbPort1 = UsbPort()
+usbPort1.plug(usbCable)
+
+class MicroUsbCable:
+    def __init__(self):
+        self.isPlugged = False
+    
+    def plugMicroUsb(self):
+        self.isPlugged = True
+
+class MicroToUsbAdapter(UsbCable):
+    def __init__(self, microUsbCable):
+        self.microUsbCable = microUsbCable
+        self.microUsbCable.plugMicroUsb()
+
+    # can override UsbCable.plugUsb() if needed
+
+# MicroUsbCables can plug into Usb ports via an adapter
+microToUsbAdapter = MicroToUsbAdapter(MicroUsbCable())
+usbPort2 = UsbPort()
+usbPort2.plug(microToUsbAdapter)
+```
+
+##### Facade Pattern
+
+A facade is similar to an adapter in that both work to convert one interface to
+another. But with a facade the name of the game is exposing a clean interface
+to the client code.
+
+For example in python, array are automatically dynamically resized. Under the
+hood this is just taken care of for the user. If the user tries to extend the
+array past the originally initialize size, the facade is in place to
+automatically resize the array behind the scenes. This way we just present a
+simplified interface to the user.
+
+As mentioned, python does array resizing automatically. But here's what it
+would look like if we implemented it ourselves.
+
+```python
+# Python arrays are dynamic by default, but this is an example of resizing.
+class Array:
+    def __init__(self):
+        self.capacity = 2
+        self.length = 0
+        self.arr = [0] * 2 # Array of capacity = 2
+
+    # Insert n in the last position of the array
+    def pushback(self, n):
+        if self.length == self.capacity:
+            self.resize()
+            
+        # insert at next empty position
+        self.arr[self.length] = n
+        self.length += 1
+
+    def resize(self):
+        # Create new array of double capacity
+        self.capacity = 2 * self.capacity
+        newArr = [0] * self.capacity 
+        
+        # Copy elements to newArr
+        for i in range(self.length):
+            newArr[i] = self.arr[i]
+        self.arr = newArr
+        
+    # Remove the last element in the array
+    def popback(self):
+        if self.length > 0:
+            self.length -= 1 
+```
+
+#### Behavioral Patterns
+
+##### Observer Pattern (Aka PubSub)
+
+The observer pattern is often described as one to many or publisher /
+subscriber model.
+
+Basically, you have one observer that is watching for changes in state. Then
+you have multiple subscribers that are plugged into the observer to get
+messages, to control events down stream.
+
+```python3
+class YoutubeChannel:
+    def __init__(self, name):
+        self.name = name
+        self.subscribers = []
+
+    def subscribe(self, sub):
+        self.subscribers.append(sub)
+    
+    def notify(self, event):
+        for sub in self.subscribers:
+            sub.sendNotification(self.name, event)
+
+from abc import ABC, abstractmethod
+
+class YoutubeSubscriber(ABC):
+    @abstractmethod
+    def sendNotification(self, event):
+        pass
+
+class YoutubeUser(YoutubeSubscriber):
+    def __init__(self, name):
+        self.name = name
+    
+    def sendNotification(self, channel, event):
+        print(f"User {self.name} received notification from {channel}: {event}")
+
+channel = YoutubeChannel("neetcode")
+
+channel.subscribe(YoutubeUser("sub1"))
+channel.subscribe(YoutubeUser("sub2"))
+channel.subscribe(YoutubeUser("sub3"))
+
+channel.notify("A new video released")
+```
+
+In this case we have multiple Subscribers listening to a single published. But
+users could also be subscribed to multiple channels.  Since the Publishers &
+Subscribers don't have to worry about each others' implementations, they are
+loosely coupled.
+
+Output:
+```
+User sub1 received notification from neetcode: A new video released
+User sub2 received notification from neetcode: A new video released
+User sub3 received notification from neetcode: A new video released 
+```
+
+##### Iterator Pattern
+
+Most python programmers are familiar with at least using an Iterator. All the
+default python data types are Iterators. You can use the `in` keyword in python
+to move through an Iterator.
+
+```python
+# Uses the builtin list iterator
+mylist = [1,2,3]
+for n in mylist:
+    print(n)
+```
+
+However, with more complicated objects and datastructure we can build our own
+interator by overwriting the `__next__` dunder method.
+
+In the example below we create a custom LinkedList class and show how it can be
+used as an iderator.
+
+```python3
+class ListNode:
+    def __init__(self, val):
+        self.val = val
+        self.next = None
+
+class LinkedList:
+    def __init__(self, head):
+        self.head = head
+        self.cur = None
+
+    # Define Iterator
+    def __iter__(self):
+        self.cur = self.head
+        return self
+
+    # Iterate
+    def __next__(self):
+        if self.cur:
+            val = self.cur.val
+            self.cur = self.cur.next
+            return val
+        else:
+            raise StopIteration
+
+# Initialize LinkedList
+head = ListNode(1)
+head.next = ListNode(2)
+head.next.next = ListNode(3)
+myList = LinkedList(head)
+
+# Iterate through LinkedList
+for n in myList:
+    print(n) 
+```
+
+Outputs:
+
+```python3
+1
+2
+3 
+```
+
+##### Strategy Pattern
+
+Strategy: Defines a family of algorithms, encapsulates each one, and makes them
+interchangeable, allowing the algorithm to vary independently from the clients
+that use it.
+
+A Class may have different behaviour, or invoke a different method based on
+something we define (i.e. a Strategy). For example, we can filter an array by
+removing positive values; or we could filter it by removing all odd values.
+These are two filtering strategies we could implement, but we could add many
+more.
+
+```python3
+from abc import ABC, abstractmethod
+
+class FilterStrategy(ABC):
+
+    @abstractmethod
+    def removeValue(self, val):
+        pass
+
+class RemoveNegativeStrategy(FilterStrategy):
+
+    def removeValue(self, val):
+        return val < 0 
+
+class RemoveOddStrategy(FilterStrategy):
+
+    def removeValue(self, val):
+        return abs(val) % 2
+
+
+class Values:
+    def __init__(self, vals):
+        self.vals = vals
+    
+    def filter(self, strategy):
+        res = []
+        for n in self.vals:
+            if not strategy.removeValue(n):
+                res.append(n)
+        return res
+
+values = Values([-7, -4, -1, 0, 2, 6, 9])
+
+print(values.filter(RemoveNegativeStrategy()))
+print(values.filter(RemoveOddStrategy()))
+```
+
+Output:
+```python3
+[0, 2, 6, 9]
+[-4, 0, 2, 6] 
+```
+
+All of the above Python Design Patterns code stolen from here:
 
 [Neetcode Design Patterns Code](https://neetcode.io/courses/lessons/8-design-patterns)
 
