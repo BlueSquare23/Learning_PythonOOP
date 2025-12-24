@@ -1965,6 +1965,238 @@ source (whatever it might be). Then our method for displaying the data doesn't
 need to care what data source we're working with, because they all implement the
 `.get_data()` method, so it can work with any of them.
 
+## Software Architecture & Design Philosophies
+
+So far we've talked about SOLID Principals, the four main pillars, and design
+patterns. But now its time to go up yet another level of abstraction and
+discuss ideas about software architecture.
+
+Software architecture is the sort of high level strategic view of a software
+application. Experienced folks will advise that you begin with architecture
+when designing a new project because it is these details that become harder to
+change as the project grows in complexity.
+
+|              Hierarchy of Software Design Concepts                     |
+| ---------------------------------------------------------------------- |
+| Software Architecture > Software Design > Implementation/Code Patterns |
+
+So far everything we've talked about has been Software Design and
+implementation details. Software Architecture is how we take our Design
+Principals & Patterns and stitch them together to build complex systems.
+
+Its worth noting that while the ideas discussed below are separate and distinct
+from one another, they are by no means contradictory philosophies. It isn't MVC
+vs DDD vs Clean Arch vs Hexagonal Arch as if each was a dogmatic paradigm with
+radically different takes on how to design software systems.
+
+Rather like many traditions in philosophy, these ideas often complement, are
+based off of, and barrow from one another. They are all different lenses one
+can use to view the process of building complex software systems.
+
+### Basic Three Tier Model, View, Controller (MVC) Architecture
+
+Lots of people harp on at length about MVC and the various similar derivatives,
+but the basic structure is this:
+
+![Basic MVC Diagram](https://raw.githubusercontent.com/Codecademy/articles/0b631b51723fbb3cc652ef5f009082aa71916e63/images/mvc_process.svg)
+
+Under MVC, we split the application up into three distinct components, each
+with different responsibilities.
+
+* Model: Data layer of application (concrete example: The ORM class that defines your tables schema and available methods)
+* View: Presentation layer, UI components, Display of data from model (concrete example: The template for the page that presents info and interface to controller (ie. forms))
+* Controller: Interface between View & Model. Translates user input to changes to Model and correspondingly updates View to reflect changes. (concrete example: Route code that handles POST requests and does needful)
+
+The view doesn't ever interact with the model directly. Instead all model
+changes are handled by the controller and info about the new state of the model
+is relayed back through the controller up to the view.
+
+Here's what a typical MVC order of operations looks like:
+
+1. User makes request to the controller.
+2. Controller interacts with the model to fetch or change data.
+3. Data is returned from the model to the controller.
+4. Controller passes information to the view to render it.
+5. View passes rendered results back to Controller.
+6. Controller returns results to end user.
+
+There's more to it than that and countless variations on that basic model but
+its not worth getting deeper into here.
+
+The real power behind this architectural pattern is the separation of concerns.
+The Model never talks to the View and vice versa. The model only does data, the
+view only does presentation, and the controller only does core business logic.
+
+### The Clean Architecture
+
+The next architecture we're going to talk about is another idea from Uncle Bob
+called _"The clean architecture"_.
+
+![Uncle Bob's Clean Architecture](https://blog.cleancoder.com/uncle-bob/images/2012-08-13-the-clean-architecture/CleanArchitecture.jpg)
+
+I'm basing these note's off [this talk I watched on the subject](https://www.youtube.com/watch?v=DJtef410XaM) by Brandon Rhodes from PyOhio 2014.
+
+The main idea behind the clean pattern is very simple. Uncle Bob argues that
+we've been writing functions backwards this whole time. The typical use of a
+function is to wrap up and hide complexity behind a layer of abstraction. To
+make the messy business of `do_x_thing()` simple.
+
+However, Bob argues this is the wrong approach. Instead he says what we ought
+to be doing is having the actual external interactions (IO, DB Calls, API
+Requests, ect.) happen in the outer most layer, in the client code and then
+have our inner sub routines be purely functional in nature.
+
+To express it another way:
+
+> An "Imperative shell" that wraps and uses your "Functional Core."
+
+So like the inner most modules shouldn't "do" anything. They just take in one
+data structure and spit out another data structure.
+
+For example, let's say we wanted to add a feature to our project to get the
+definition for a word via an external web api. A lot of programmers would just
+write a function like this to abstract away complexity and handle the messy
+business for you. 
+
+* Basic Non-Clean Arch Example:
+
+```python
+import requests
+from urllib import urlencode
+
+def find_definition(word):
+    q = 'define ' + word
+    url = 'http://api.duckduckgo.com/?'
+    url += urlencode({'q': q, 'format': 'json'})
+
+    response = requests.get(url)
+    data = response.json()
+    definition = data[u'Definition']
+
+    if definition == u'':
+        raise ValueError('that is not a word')
+    return definition
+```
+
+* Arch Diagram:
+
+```
+↘
+  Proceedure
+```
+
+The problem with this code is that it buries I/O deep in the core of your
+business logic. So for example, when the API becomes deprecated (which this one
+has), we have to rewrite the whole function.
+
+When re-factoring this code, it might be tempting to continue making the same
+mistake uncle Bob argues we've been making for the last 60 years and hide away
+that complexity once again behind a new function. However, in the process of
+making a new func to wrap our api call, we yet again bury our I/O even deeper.
+
+* Non-Clean Arch Refactored Example:
+
+```python
+def find_definition(word):
+    q = 'define ' + word
+    url = 'http://api.duckduckgo.com/?'
+    url += urlencode({'q': q, 'format': 'json'})
+
+    data = call_json_api(url)
+    definition = data[u'Definition']
+
+    if definition == u'':
+        raise ValueError('that is not a word')
+    return definition
+
+def call_json_api(url):
+    response = requests.get(url)  # I/O
+    data = response.json()        # I/O
+    return data
+```
+
+* Arch Diagram:
+
+```
+↘
+  Proceedure
+             ↘ 
+               i/o subroutine
+```
+
+So we've hidden the I/O, but we haven't cleanly de-coupled it.
+
+Now one way we could continue going here, is to use some sort of dependency
+inversion here. For example in our test code would pass in a mock
+`call_json_api()` function, we could do some monkey patching to replace
+requests with our own mock requests library with a custom `.get()` method etc.
+
+However, uncle Bob says there's a better way. What if instead we inverted the
+IO an brought it out to the outer rim of our program.
+
+* Clean Arch Refactored Example:
+
+```python
+# Outer Imperative Shell
+def find_definition(word):
+    url = build_url(word)
+    data = requests.get(url).json()  # I/O
+    return pluck_definition(data)
+
+# Inner Functional Core
+def build_url(word):
+    q = 'define' + word
+    url = 'http://api.duckduckgo.com/?'
+    url += urlencode({'q': q, 'format': 'json'})
+
+def pluck_definition(data):
+    definition = data[u'Definition']
+    if definition == u'':
+        raise ValueError('that is not a word')
+    return definition
+```
+
+* Arch Diagram:
+
+```
+↘
+  Proceedure
+             ↘ 
+               pure function
+             ↘ 
+               pure function
+```
+
+With this example, we've put the data operations in our inner functions, while
+pulling out the I/O to the outer edge.
+
+So now our downstream functions don't have side effects. They simply take some
+args that are data, and return some results that are data.
+
+This has incredible ramifications for testing. Now we can test our inner
+functions without having to do any mocking or monkey patching. We just feed it
+a data structure and double check that the results are what we're expecting.
+
+The key here is a clear separation of concerns. While our outer layers depend
+on our core logic, our core logic should Not depend on things in the outer
+layer. It should remain decoupled and modular, allowing us to swap out
+components as things change and evolve over time.
+
+### Domain Driven Design
+
+
+
+### Hexagonal Architecture
+
+### Bringing it All Together
+
+These ideas are largely complimentary and fit together quite nicely.
+
+For example, let's make synthesize these models in conjunction with one an
+other to lay out a basic software project.
+
+
+
 ## Conclusion
 
 These are John's notes on object oriented programming in python3.
@@ -1986,6 +2218,8 @@ structure if they're going to grow taller.
 * [Refactoring Guru - Catalog of Design Patterns](https://refactoring.guru/design-patterns/catalog)
 * [Neetcode.io - Design Patterns Code](https://neetcode.io/courses/lessons/8-design-patterns)
 * [Real Python - Solid Principals](https://realpython.com/solid-principles-python/)
+* [GeeksForGeeks - Differences between Software Design and Software Architecture](https://www.geeksforgeeks.org/system-design/difference-between-software-design-and-software-architecture/)
+* [Brandon Rhodes PyOhio Talk - The Clean Architecture in Python](https://www.youtube.com/watch?v=DJtef410XaM)
 
 
 <br><hr>
