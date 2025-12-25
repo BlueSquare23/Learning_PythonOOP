@@ -2190,7 +2190,8 @@ components as things change and evolve over time.
 
 ### Domain-Driven Design (DDD)
 
-[![Alex Hyett Youtube - Domain Driven Design](https://img.youtube.com/vi/4rhzdZIDX_k/default.jpg)](https://youtu.be/4rhzdZIDX_k)
+
+[![Alex Hyett Youtube - Domain Driven Design](https://i.ytimg.com/vi/4rhzdZIDX_k/maxresdefault.jpg)](https://www.youtube.com/watch?v=4rhzdZIDX_k)
 
 This approach comes from Eric Evans 2003 Book _"Domain-Driven Design"_.
 
@@ -2265,7 +2266,7 @@ involving multiple entity objects.
 
 ### Hexagonal Architecture
 
-[![Alex Hyett Youtube - Hexagonal Architecture](https://img.youtube.com/vi/bDWApqAUjEI/default.jpg)](https://youtu.be/bDWApqAUjEI)
+[![Alex Hyett Youtube - Hexagonal Architecture](https://i.ytimg.com/vi/bDWApqAUjEI/maxresdefault.jpg)](https://www.youtube.com/watch?v=bDWApqAUjEI)
 
 Previously, in this document we discussed the Adapter pattern that can be used
 to plug a square peg into a round hole. The hexagonal arch takes this idea and
