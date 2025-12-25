@@ -2182,20 +2182,137 @@ on our core logic, our core logic should Not depend on things in the outer
 layer. It should remain decoupled and modular, allowing us to swap out
 components as things change and evolve over time.
 
-### Domain Driven Design
+### Domain-Driven Design (DDD)
 
+[![Alex Hyett Youtube - Domain Driven Design](https://img.youtube.com/vi/4rhzdZIDX_k/default.jpg)](https://youtu.be/4rhzdZIDX_k)
 
+This approach comes from Eric Evans 2003 Book _"Domain-Driven Design"_.
+
+Under DDD, we start our design process by breaking down the problems our
+software is trying to solve into separate specific "domains" and "sub-domains."
+
+For example, let's say we were to build a streaming service from scratch. What
+would be our domain? Well one way we could break it down is like this:
+
+* Video Stream (Core Domain)
+* Recommendations 
+* Billing
+* Etc.
+
+From there we can then move on to figure out the key parts of each of those
+domains.
+
+Before we can do that though we need to talk about language. A big thing in DDD
+is use of "Ubiquitous Language" which really just means everyone needs to be on
+the same page and use the same words when talking about things that fall under
+a specific domain. 
+
+![Domain Drive Design Diagram](https://miro.medium.com/v2/resize:fit:4800/format:webp/1*rg6owUfAfZC43hWnO6zQRQ.jpeg)
+
+When we break down a given domain into key components, we might find that
+several domain share common attributes. So our billing and recommendation and
+streaming domains probably all contain some soft of object representing a user
+account. But under the billing domain context they call them, customers.
+Whereas under the streaming domain they call them subscribers.
+
+DDD deals with this by having us define "Boundary Contexts" so we don't need to
+get the whole business to agree on what to call subscribers, we just need to
+agree what to call them within each domain. To enforce this boundary we create
+what's called "an anti-corruption layer" which translates what an object is
+called and what it means when passed between domains.
+
+Once we've outlined our domains and their components, we then define a "Context
+Map" which outlines which domains communicate with each other and the direction
+of that communication.
+
+The next step is to use "Tactical Design" to figure out what objects for each
+domain (aka our Domain Objects). Domain objects come in two forms:
+
+* Entity Objects: Unique mutable objects with unique IDs, if all attribs the same but IDs differ, they're different objects.
+* Value Objects: Non-unique immutable objects with no ID, if all attribs the same, they're the same object.
+
+For example, a User would be an Entity Object, because when a user changes
+their Email address or profile picture, it's still the same user account.
+
+Whereas, we'd use a value object to save the Email address. Of course we could
+always save the email address to a boring string. But using a value object
+allows us to make string value hidden (with no setters) and we can pack logic
+into the constructor, which can be useful when doing something like validating
+an email address. We don't need to validate all throughout our code because we
+know it was validated when the value object was instantiated.
+
+So entity objects typically contain many value objects. And then when we have a
+collection of entities, we call that an _Aggregate_. Aggregates are often used
+to make up _Transactional Boundaries_ where when changes are made to the
+aggregate, these changes are then committed or rolled back from the database.
+
+Finally, we have _Repositories_ and _Services_.
+
+Repositories are the data access layer. They provide an interface to persistent
+storage and often use the language of a database, implementing `.add()` and
+`.remove()` methods. Repositories are not for individual entity or value
+object, but rather handle whole aggregates.
+
+Services in DDD are stateless collections of methods that don't make sense to
+add to any one entity object. Say for example you need to do a calculation
+involving multiple entity objects.
 
 ### Hexagonal Architecture
 
+[![Alex Hyett Youtube - Hexagonal Architecture](https://img.youtube.com/vi/bDWApqAUjEI/default.jpg)](https://youtu.be/bDWApqAUjEI)
+
+Previously, in this document we discussed the Adapter pattern that can be used
+to plug a square peg into a round hole. The hexagonal arch takes this idea and
+extends it to entire application to create highly decoupled and modular pieces.
+
+Alistair Cockburn who came up with the hexagonal arch realized that there
+wasn't much difference between interacting with a database or interacting with
+an external API / application. So instead of having our application call the
+database directly, we just need it to call a _Port_ interface that implements a
+read and write method and an adapter that plugs into that port which connects
+to the database or file system or message queue or whatever.
+
+![Hexagonal Architecture](https://miro.medium.com/v2/resize:fit:2000/1*mGLO5IfhJv4o0NYOAZI60A.png)
+
+This way the application code can remain highly decoupled. You can swap out
+adapters add day long and as long as they plug into the port, the inner
+application code doesn't need to care what they are or know anything about
+them.
+
+But its not just outputs that can use this ports and adapters pattern. We can
+describe these two sides as the "Driving Side" and the "Driven Side."
+
+However, a Hexagon in this metaphor is a stand-in for a single component of
+your application. In reality, your application will likely be built up of
+several interlocking hexagons to form a tiling of modular components.
+
+This highly decoupled design has huge benefits for maintainability and
+testability as it becomes easy to test individual components in isolation and
+if something ever breaks or becomes deprecated, its easy enough to swap out the
+pieces.
+
+However, this comes at the cost of complexity. Instead of writing directly to a
+database, we have to impose several new software layers and abstractions
+between that. This takes time to write and more lines of code == more liabilities.
+
 ### Bringing it All Together
 
-These ideas are largely complimentary and fit together quite nicely.
+As mentioned previously, these ideas are largely complimentary and fit together
+quite nicely.
 
-For example, let's make synthesize these models in conjunction with one an
-other to lay out a basic software project.
+For example, let's make synthesize these models in conjunction with one another
+to lay out a basic software project.
 
-
+We'll start with a basic Three Tier Architecture where we have a clear
+separation between Presentation, Data Access, & Control layers. We'll borrow
+ideas from Uncle Bob's Clean Architecture and say the outer most layer is our
+presentation layer and data access layer and in the core lies our controller
+logic. When defining this inner core we can apply the principals learned from
+Domain Driven Design to break our business logic down into domain specific
+areas of concern, and then when decoupling things for individual domains we can
+apply what we've learned about the hexagonal architecture and ports and
+adapters to make sure our individual components are modular, maintainable, and
+testable.
 
 ## Conclusion
 
@@ -2220,7 +2337,10 @@ structure if they're going to grow taller.
 * [Real Python - Solid Principals](https://realpython.com/solid-principles-python/)
 * [GeeksForGeeks - Differences between Software Design and Software Architecture](https://www.geeksforgeeks.org/system-design/difference-between-software-design-and-software-architecture/)
 * [Brandon Rhodes PyOhio Talk - The Clean Architecture in Python](https://www.youtube.com/watch?v=DJtef410XaM)
-
+* [Alex Hyett Youtube - Domain Driven Design](https://www.youtube.com/watch?v=4rhzdZIDX_k)
+* [Eric Evans - Domain-Drive Design PDF](https://fabiofumarola.github.io/nosql/readingMaterial/Evans03.pdf)
+* [Opus.ch - DDD Service & Repository Patterns](https://opus.ch/ddd-concepts-and-patterns-service-and-repository/)
+* [Alex Hyett Youtube - Hexagonal Architecture](https://www.youtube.com/watch?v=bDWApqAUjEI)
 
 <br><hr>
 [🔼 Back to top](#learning-object-oriented-python3)
