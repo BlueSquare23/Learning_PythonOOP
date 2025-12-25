@@ -2199,7 +2199,7 @@ Under DDD, we start our design process by breaking down the problems our
 software is trying to solve into separate specific "domains" and "sub-domains."
 
 For example, let's say we were to build a streaming service from scratch. What
-would be our domain? Well one way we could break it down is like this:
+would be our domains? Well one way we could break it down is like this:
 
 * Video Stream (Core Domain)
 * Recommendations 
@@ -2217,7 +2217,7 @@ a specific domain.
 ![Domain Drive Design Diagram](https://miro.medium.com/v2/resize:fit:4800/format:webp/1*rg6owUfAfZC43hWnO6zQRQ.jpeg)
 
 When we break down a given domain into key components, we might find that
-several domain share common attributes. So our billing and recommendation and
+several domains share common attributes. So our billing and recommendation and
 streaming domains probably all contain some soft of object representing a user
 account. But under the billing domain context they call them, customers.
 Whereas under the streaming domain they call them subscribers.
@@ -2282,12 +2282,13 @@ to the database or file system or message queue or whatever.
 ![Hexagonal Architecture](https://miro.medium.com/v2/resize:fit:2000/1*mGLO5IfhJv4o0NYOAZI60A.png)
 
 This way the application code can remain highly decoupled. You can swap out
-adapters add day long and as long as they plug into the port, the inner
+adapters all day long and as long as they plug into the port, the inner
 application code doesn't need to care what they are or know anything about
 them.
 
-But its not just outputs that can use this ports and adapters pattern. We can
-describe these two sides as the "Driving Side" and the "Driven Side."
+But its not just outputs that can use this ports and adapters pattern. Inputs
+can too! We can describe these two sides as the "Driving Side" and the "Driven
+Side."
 
 However, a Hexagon in this metaphor is a stand-in for a single component of
 your application. In reality, your application will likely be built up of
@@ -2307,31 +2308,39 @@ between that. This takes time to write and more lines of code == more liabilitie
 As mentioned previously, these ideas are largely complimentary and fit together
 quite nicely.
 
-For example, let's make synthesize these models in conjunction with one another
-to lay out a basic software project.
+For example, let's make a synthesize of these models in conjunction with one
+another to see how we can apply them when architecting a software project.
 
 We'll start with a basic Three Tier Architecture where we have a clear
 separation between Presentation, Data Access, & Control layers. We'll borrow
 ideas from Uncle Bob's Clean Architecture and say the outer most layer is our
 presentation layer and data access layer and in the core lies our controller
-logic. When defining this inner core we can apply the principals learned from
-Domain Driven Design to break our business logic down into domain specific
-areas of concern, and then when decoupling things for individual domains we can
-apply what we've learned about the hexagonal architecture and ports and
-adapters to make sure our individual components are modular, maintainable, and
-testable.
+logic.
+
+When defining this inner core we can apply the principals learned from Domain
+Driven Design to break our business logic down into domain specific areas of
+concern, and then when decoupling things for individual domains we can apply
+what we've learned about the hexagonal architecture and ports and adapters to
+make sure our individual components are modular, maintainable, and testable.
 
 ## Conclusion
 
-These are John's notes on object oriented programming in python3.
+The ideas discussed above are important conceptual frameworks to hold in your
+head when designing and building your next piece of software. These notes are
+meant to be used as a brief overview of and quick reference for some important
+topics in software design and development. However, it is by no means a fully
+comprehensive or exhaustive list. There are whole books written about many of
+the topics covered above. 
 
-I'm excited to get into this stuff more and write more oop code do more ood.
-However, I'm also aware that OOP is A) time consuming to write and B) overkill
-in certain situations. 
+Nor are these ideas gospel or dogma. They are meant to be helpful guidelines to
+keep you from falling into nasty tar pits. However, use each in its appropriate
+measure. Over architecting and designing can be just as much of a problem and
+waste of time as under-architecting and under-designing.
 
-However, at this point I do believe its unfortunately somewhat necessary to
-dive into to allow my projects to scale. The mountains of spaghetti code need
-structure if they're going to grow taller. 
+As with all thing, use in moderation and under the supervision of an adult.
+Thanks for reading!
+
+- Johnny R.
 
 ## Sources
 
