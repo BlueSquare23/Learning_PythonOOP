@@ -44,6 +44,12 @@
     + [Liskov Substitution Principle (LSP)](#liskov-substitution-principle-lsp)
     + [Interface Segregation Principle (ISP)](#interface-segregation-principle-isp)
     + [Dependency Inversion Principle (DIP)](#dependency-inversion-principle-dip)
+- [Software Architecture & Design Philosophies](#software-architecture--design-philosophies)
+  * [Basic Three Tier Model, View, Controller (MVC) Architecture](#basic-three-tier-model-view-controller-mvc-architecture)
+  * [The Clean Architecture](#the-clean-architecture)
+  * [Domain-Driven Design (DDD)](#domain-driven-design-ddd)
+  * [Hexagonal Architecture](#hexagonal-architecture)
+  * [Bringing it All Together](#bringing-it-all-together)
 - [Conclusion](#conclusion)
 - [Sources](#sources)
 
